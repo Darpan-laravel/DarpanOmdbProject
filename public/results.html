@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <title>Favorites</title>
+  <style>
+    #poster-image {
+      height: 180px;
+      width: 180px;
+      overflow: hidden;
+    }
+
+    .favorite-label {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #007bff;
+      font-family: 'Roboto', sans-serif;
+      transition: color 0.3s ease-in-out;
+    }
+
+    .favorite-label:hover {
+      color: #0056b3;
+    }
+
+    #noFavoritesMessage {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+      border-radius: 0.25rem;
+      width: 33%;
+    }
+  </style>
+</head>
+
+<body class="container mt-5">
+  <div class="row">
+    <div class="col-md-12">
+      <h2 class="mb-4 favorite-label">Favorites</h2>
+      <div id="favoritesResults"></div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      async function fetchAndDisplayFavorites() {
+        try {
+          const response = await fetch('/OmdbProject/favorites');
+
+          const html = await response.text();
+          document.getElementById('favoritesResults').innerHTML = html;
+        } catch (error) {
+          console.error('Error fetching favorites:', error.message);
+        }
+      }
+
+      fetchAndDisplayFavorites();
+    });
+  </script>
+</body>
+
+</html>

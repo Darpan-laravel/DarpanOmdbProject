@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+    integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <title>Movie Search</title>
+  <style>
+    #poster-image {
+      height: 180px;
+      width: 180px;
+      overflow: hidden;
+    }
+
+    .search-label {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #007bff;
+      font-family: 'Roboto', sans-serif;
+      transition: color 0.3s ease-in-out;
+    }
+
+    .search-label:hover {
+      color: #0056b3;
+    }
+
+    #noResultsMessage {
+      margin-left: 220px;
+      padding: 10px;
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+      border-radius: 0.25rem;
+      width: 33%;
+      animation: hideMessage 8s forwards;
+    }
+
+    @keyframes hideMessage {
+      from {
+        opacity: 1;
+      }
+
+      to {
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <body class="container mt-5">
+    <div class="row">
+      <div class="col-md-8 offset-md-2">
+        <form id="searchForm" class="form-inline" method="post">
+          <div class="form-group mb-2">
+            <label for="searchQuery" class="sr-only search-label">Search movies</label>
+          </div>
+          <div class="input-group mb-3">
+            <input type="text" id="searchQuery" class="form-control" placeholder="Type to search for movies (e.g. abc)"
+              aria-describedby="button-addon2" required>
+            <button type="button" class="btn btn-primary" id="button-addon2" onclick="searchMovies()">Search</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div id="searchResults"></div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+      integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+      crossorigin="anonymous"></script>
+
+    <script>
+      async function searchMovies() {
+        const searchQuery = document.getElementById('searchQuery').value;
+
+        const searchInput = document.getElementById('searchQuery');
+        const searchResults = document.getElementById('searchResults');
+        const messageBox = document.getElementById('messageBox');
+
+        if (searchInput.value.trim() === '') {
+          searchInput.setAttribute('placeholder', 'Type something to search');
+          searchInput.classList.add('border', 'border-danger');
+          searchInput.focus();
+
+          setTimeout(() => {
+            searchInput.removeAttribute('placeholder');
+          }, 5000);
+
+          return;
+        }
+
+        // Clear any previous messages and styles
+        searchInput.classList.remove('border', 'border-danger');
+        searchResults.innerHTML = '';
+
+        try {
+          const response = await fetch('/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({ searchQuery }),
+          });
+
+          const html = await response.text();
+
+          if (html.trim() === '') {
+            document.getElementById('searchResults').innerHTML = '<div id="noResultsMessage" class="alert">No results found</div>';
+          } else {
+            document.getElementById('searchResults').innerHTML = html;
+          }
+        } catch (error) {
+          console.error('Error fetching search results:', error.message);
+        }
+      }
+
+      async function saveFavorite(imdbID, title, year, type, poster) {
+        const checkbox = document.getElementById(`favoriteCheckbox_${imdbID}`);
+        const messageBox = document.getElementById(`messageBox_${imdbID}`);
+
+        try {
+          if (checkbox.checked) {
+            const response = await fetch('/OmdbProject/favorite', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ title, year, type, poster }),
+            });
+
+            if (response.ok) {
+              showMessage(messageBox, 'Added to favorites', 'success');
+            } else {
+              showMessage(messageBox, 'Failed to save favorite', 'danger');
+            }
+          } else {
+            const response = await fetch('/OmdbProject/unfavorite', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ title }),
+            });
+
+            if (response.ok) {
+              showMessage(messageBox, 'Removed from favorites', 'success');
+            } else {
+              showMessage(messageBox, 'Failed to remove favorite', 'danger');
+            }
+          }
+        } catch (error) {
+          showMessage(messageBox, `Error: ${error.message}`, 'danger');
+        }
+      }
+
+      function showMessage(messageBox, message, type) {
+        messageBox.innerHTML = message;
+        messageBox.className = `alert alert-${type}`;
+        messageBox.classList.remove('d-none');
+
+        setTimeout(() => {
+          messageBox.classList.add('d-none');
+        }, 3000);
+      }
+    </script>
+  </body>
+
+</html>
